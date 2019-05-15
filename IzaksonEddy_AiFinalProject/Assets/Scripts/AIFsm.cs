@@ -1,122 +1,96 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class AIFsm : FSM
+public class AIFsm : MonoBehaviour
 {
     public enum FSMState
     {
-        None,
         Patrol,
         PickUpItem,
     }
 
     public FSMState curState;
+    ObstaclesAvoiding obstacleAvoid;
+    ObjectFollowing pathToFollow;
 
-    [SerializeField]
+    PickUpSensor pickUpSensor;
 
-    private float _curSpeed;
-    private float _curRotSpeed;
-    private Rigidbody _rigidbody;
+    public Transform pickUpSensed;
+    Vector3 frwDirection;
+    public float moveSpeed;
 
-    protected override void Initialize()
+    private void Start()
     {
-        //Personal variables
         curState = FSMState.Patrol;
-        _curSpeed = 15.0f;
-        _curRotSpeed = 2.0f;
-        //Variables inherited
-        elapsedTime = 0.0f;
-        wayPoints = GameObject.FindGameObjectsWithTag("Way Point");
-        FindNextPoint();
-        pickUpTransform = GameObject.FindGameObjectWithTag("PickUp").transform;
-        _rigidbody = GetComponent<Rigidbody>();
-    }
+        obstacleAvoid = GetComponent<ObstaclesAvoiding>();
+        pathToFollow = GetComponent<ObjectFollowing>();
 
-    protected override void FSMUpdate()
+        pickUpSensor = GetComponent<PickUpSensor>();
+        pickUpSensor.OnDetectItem += DetectionTrigger;
+    }
+    // Update is called once per frame
+    void Update()
     {
+        CheckStates();
         switch (curState)
         {
             case FSMState.Patrol:
-                UpdatePatrolState();
+                PatrolState();
                 break;
+
             case FSMState.PickUpItem:
-                UpdateHuntState();
-                break;
-
-            default:
+                MoveToPickUp();
                 break;
         }
 
-        elapsedTime += Time.deltaTime;
-
-
+        Navigate();
     }
 
-    protected void UpdatePatrolState()
+    private void MoveToPickUp()
     {
-        if (Mathf.Abs(transform.position.x - wayPoints[indexOfWayPoints].transform.position.x) < 1 && Mathf.Abs(transform.position.z - wayPoints[indexOfWayPoints].transform.position.z) < 1)
-        {
-            FindNextPoint();
-        }
-        else if (Mathf.Abs(transform.position.x - pickUpTransform.position.x) <= 5.0f && Mathf.Abs(transform.position.z - pickUpTransform.position.z) <= 5.0f)
-        {
+        frwDirection = pickUpSensed.position - transform.position;
+    }
+
+    private void PatrolState()
+    {
+        pathToFollow.UpdatePathFollow();
+        frwDirection = pathToFollow.PathTarget - transform.position;
+
+        Navigate();
+    }
+
+    void CheckStates()
+    {
+        if (pickUpSensed != null)
             curState = FSMState.PickUpItem;
-        }
-
-        Quaternion targetRot = Quaternion.LookRotation(wayPoints[indexOfWayPoints].transform.position - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, _curRotSpeed * Time.deltaTime);
-        transform.position = Vector3.MoveTowards(transform.position, wayPoints[indexOfWayPoints].transform.position, _curSpeed * Time.deltaTime);
-    }
-
-    protected void FindNextPoint()
-    {
-        int randomIndex = GetRandomIndex();
-
-        if (randomIndex == indexOfWayPoints)
-        {
-            if (indexOfWayPoints == wayPoints.Length - 1)
-            {
-                indexOfWayPoints--;
-            }
-            else
-            {
-                indexOfWayPoints++;
-            }
-        }
         else
-        {
-            indexOfWayPoints = randomIndex;
-        }
-    }
-
-    private int GetRandomIndex()
-    {
-        return Random.Range(0, wayPoints.Length - 1);
-    }
-
-    protected void UpdateHuntState()
-    {
-        if (Mathf.Abs(transform.position.x - pickUpTransform.position.x) >= 5.0f || Mathf.Abs(transform.position.z - pickUpTransform.position.z) >= 5.0f)
-        {
             curState = FSMState.Patrol;
-        }
-        Quaternion targetRot = Quaternion.LookRotation(pickUpTransform.position - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, _curRotSpeed * Time.deltaTime);
-        transform.position = Vector3.MoveTowards(transform.position, pickUpTransform.position, _curSpeed * Time.deltaTime);
+
+    }
+  
+
+    private void Navigate()
+    {
+        AvoidObstacle();
+        var lookRotation = Quaternion.LookRotation(frwDirection);
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, obstacleAvoid.RotationSpeed * Time.deltaTime);
+        transform.position += transform.forward * pathToFollow.CurrentSpeed;
     }
 
-    protected void UpdateAttackState()
+    private void AvoidObstacle()
     {
-        if ((Mathf.Abs(transform.position.x - pickUpTransform.position.x) >= 3.0f && Mathf.Abs(transform.position.z - pickUpTransform.position.z) >= 3.0f) && (Mathf.Abs(transform.position.x - pickUpTransform.position.x) <= 5.0f && Mathf.Abs(transform.position.z - pickUpTransform.position.z) <= 5.0f))
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, obstacleAvoid.DistanceToAvoid, obstacleAvoid.Mask))
         {
-            Quaternion targetRot = Quaternion.LookRotation(pickUpTransform.position - transform.position);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, _curRotSpeed * Time.deltaTime);
-            transform.position = Vector3.MoveTowards(transform.position, pickUpTransform.position, _curSpeed * Time.deltaTime);
+            Vector3 hitNormal = hit.normal;
+            hitNormal.y = 0.0f;
+            frwDirection = transform.forward + hitNormal * obstacleAvoid.RotationForce;
+        }
+    }
 
-        }
-        else if (Mathf.Abs(transform.position.x - pickUpTransform.position.x) >= 5.0f || Mathf.Abs(transform.position.z - pickUpTransform.position.z) >= 5.0f)
-        {
-            curState = FSMState.Patrol;
-        }
+    void DetectionTrigger()
+    {
+        pickUpSensed = pickUpSensor.nearPickUps[0].transform;
     }
 
 

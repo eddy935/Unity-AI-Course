@@ -3,16 +3,19 @@
 public class ObjectFollowing : MonoBehaviour
 {
     public CreatePath path;
-    public float speed = 5.0f;
-    public float mass = 5.0f;
+    public float speed;
+    public float mass;
     public bool isLooping = true;
-
     private float _curSpeed;
     private int _curPathIndex;
-    private float _pathLength;
+    private int _pathLength;
     private Vector3 _targetPoint;
     private Vector3 _velocity;
 
+    public float PathSpeed { get { return _curSpeed; } }
+    public float CurrentSpeed { get { return _curSpeed; } }
+    public Vector3 Velocity { get { return _velocity; } }
+    public Vector3 PathTarget { get { return _targetPoint; } }
     private void Start()
     {
         _pathLength = path.Length;
@@ -20,7 +23,7 @@ public class ObjectFollowing : MonoBehaviour
         _velocity = transform.forward;
     }
 
-    private void Update()
+    public void UpdatePathFollow()
     {
         _curSpeed = speed * Time.deltaTime;
         _targetPoint = path.GetPoint(_curPathIndex);
@@ -45,20 +48,13 @@ public class ObjectFollowing : MonoBehaviour
         {
             return;
         }
-
-        if (_curPathIndex >= _pathLength - 1 && !isLooping)
-        {
-            _velocity += Steer(_targetPoint, true);
-        }
-        else
-        {
-            _velocity += Steer(_targetPoint);
-        }
-
-        transform.position += _velocity;
-        transform.rotation = Quaternion.LookRotation(_velocity);
+   
     }
 
+    void ReverseIndex()
+    {
+        _curPathIndex = (_pathLength - 1) - _curPathIndex;
+    }
     public Vector3 Steer(Vector3 target, bool bFinalPoint = false)
     {
         Vector3 desired_velocity = (target - transform.position);

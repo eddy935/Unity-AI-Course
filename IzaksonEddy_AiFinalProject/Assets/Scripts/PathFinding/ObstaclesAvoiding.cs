@@ -10,6 +10,8 @@ public class ObstaclesAvoiding : MonoBehaviour
     [SerializeField]
     private float _mass = 5.0f;
     [SerializeField]
+    private float _speed = 20.0f;
+    [SerializeField]
     private float _force = 10.0f;
     [SerializeField]
     private float _minimumDistToAvoid = 10.0f;
@@ -32,6 +34,7 @@ public class ObstaclesAvoiding : MonoBehaviour
         {
             return;
         }
+        _curSpeed = _speed * Time.deltaTime;
 
         var rot = Quaternion.LookRotation(dir);
         transform.rotation = Quaternion.Slerp(transform.rotation, rot, _rotSpeed * Time.deltaTime);

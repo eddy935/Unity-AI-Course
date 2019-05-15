@@ -27,7 +27,7 @@ public class CreatePath : MonoBehaviour
     private List<Vector3> _waypoints = new List<Vector3>();
 
 
-    public float Length { get { return _waypoints.Count; } }
+    public int Length { get { return _waypoints.Count; } }
 
     public Vector3 GetPoint(int index)
     {
