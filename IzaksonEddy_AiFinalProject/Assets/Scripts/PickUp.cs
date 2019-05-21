@@ -15,7 +15,7 @@ public class PickUp : MonoBehaviour
     }
     void Update()
     {
-        transform.Rotate(0, 0, transform.localEulerAngles.z + 1);
+        transform.Rotate(0, 0, transform.eulerAngles.x + 1);
         float newPosY = posY + Mathf.Sin(Time.time) * 0.5f;
         transform.localPosition = new Vector3(transform.position.x, newPosY, transform.position.z);
     }
