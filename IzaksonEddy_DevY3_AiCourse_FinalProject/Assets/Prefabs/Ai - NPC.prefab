@@ -20,7 +20,7 @@ GameObject:
   - component: {fileID: 815684054}
   m_Layer: 0
   m_Name: Ai - NPC
-  m_TagString: Untagged
+  m_TagString: Good Guys
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -125,9 +125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbdb3f95c5e251e49a109b336b5fd851, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  wayPoints: []
+  indexOfWayPoints: 0
   curState: 0
-  pickUpSensed: {fileID: 0}
-  moveSpeed: 0
+  fromEnemyRange: 25
+  moveSpeed: 80
 --- !u!114 &718646593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,10 +178,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6779795a19b04541ae096639228f28f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  aspectName: 0
+  aspectName: 1
   detectionRange: 50
   detectionOffset: 20
   nearPickUps: []
+  badGuysLocation: []
 --- !u!65 &815684054
 BoxCollider:
   m_ObjectHideFlags: 0

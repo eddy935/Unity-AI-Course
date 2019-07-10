@@ -10,7 +10,7 @@ public class Radar : Sense
     float detectionOffset;
 
     public List<PickUp> nearPickUps;
-    public List<Transform> enemyLocations = new List<Transform>();
+    public List<Transform> badGuysLocation = new List<Transform>();
 
     public delegate void OnDetection();
     public event OnDetection OnDetectItem;
@@ -22,10 +22,11 @@ public class Radar : Sense
 
     private void Start()
     {
-        foreach (var enemy in GameObject.FindGameObjectsWithTag("Bad Guys"))
+        foreach (var badGuy in GameObject.FindGameObjectsWithTag("Bad Guys"))
         {
-            enemyLocations.Add(enemy.transform);
+            badGuysLocation.Add(badGuy.transform);
         }
+
     }
 
     protected override void UpdateSense()
@@ -49,7 +50,7 @@ public class Radar : Sense
 
     void SearchForNearEnemies()
     {
-        if (enemyLocations.Count > 0 && OnEnemyDetected != null)
+        if (badGuysLocation.Count > 0 && OnEnemyDetected != null)
             OnEnemyDetected();
     }
 
